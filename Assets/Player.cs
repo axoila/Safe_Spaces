@@ -5,8 +5,8 @@ using UnityEngine;
 public class Player : MonoBehaviour {
 
 	public float speed;
-	public Transform camera;
-
+	
+	Transform cam;
 	CharacterController charCon;
 
 	float fallSpeed = 0;
@@ -15,6 +15,7 @@ public class Player : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		charCon = GetComponent<CharacterController>();
+		cam = Camera.main.transform;
 	}
 	
 	void Update () {
@@ -38,7 +39,7 @@ public class Player : MonoBehaviour {
 		Vector2 mouseInput = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
 		transform.localEulerAngles = new Vector3(0, transform.localEulerAngles.y+mouseInput.x, 0);
 		verticalCam = Mathf.Clamp(verticalCam - mouseInput.y, -90, 90);
-		camera.localEulerAngles = new Vector3(verticalCam, 0, 0);
+		cam.localEulerAngles = new Vector3(verticalCam, 0, 0);
 	}
 
 	void Movement(){

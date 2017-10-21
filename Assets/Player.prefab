@@ -40,7 +40,7 @@ GameObject:
   - component: {fileID: 4697845311940220}
   - component: {fileID: 33272878004430234}
   - component: {fileID: 23953050027844926}
-  - component: {fileID: 114810903445300976}
+  - component: {fileID: 114273830948879588}
   m_Layer: 0
   m_Name: Quad
   m_TagString: Untagged
@@ -58,6 +58,7 @@ GameObject:
   - component: {fileID: 4050573536480196}
   - component: {fileID: 143018117119997310}
   - component: {fileID: 114017809578686982}
+  - component: {fileID: 114871435034807704}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -72,7 +73,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1905904990118556}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -2}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4428613574192384}
@@ -101,7 +102,7 @@ Transform:
   m_GameObject: {fileID: 1705590032661764}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1}
-  m_LocalScale: {x: 1.8668201, y: 1.0212182, z: 1}
+  m_LocalScale: {x: 10, y: 10, z: 1}
   m_Children: []
   m_Father: {fileID: 4428613574192384}
   m_RootOrder: 0
@@ -124,7 +125,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 2.12
-  field of view: 53.5
+  field of view: 70
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -207,16 +208,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  camera: {fileID: 4428613574192384}
---- !u!114 &114810903445300976
+--- !u!114 &114273830948879588
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1705590032661764}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfc4838d4e1db154795d6084d915be57, type: 3}
+  m_Script: {fileID: 11500000, guid: 012e447f4b2fd1c49adb34cb733280f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  everything: {fileID: 2100000, guid: dfa1289669245054681b1fb9c57d5d8d, type: 2}
+  volumeSensitivity: 1000
+  volumeInertia: 10
+--- !u!114 &114871435034807704
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1905904990118556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bd19a474c5e7742bd7605dd34a02db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!124 &124789817158923504

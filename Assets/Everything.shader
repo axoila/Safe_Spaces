@@ -1,6 +1,12 @@
 ﻿Shader "Everything" {
 	Properties {
 		_Color ("Base Color", Color) = (1,1,1,1)
+		_SafeColor("Safe-Zone Color", Color) = (1,1,1,1)
+
+		_Gloss ("Gloss", float) = 1
+		_SpecularPower ("Specular", float) = 1
+
+		_HeadBubble("BubbleRadius", float) = 1
 	}
 	SubShader {
 		Cull Off ZWrite Off ZTest Always
@@ -14,13 +20,19 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			#define STEPS 64
-			#define MIN_DISTANCE 0.001
+			#define STEPS 256
+			#define MIN_DISTANCE 0.01
 
 			#include "Lighting.cginc"
 			#include "UnityCG.cginc"
 
 			float4 _Color;
+			float _Gloss;
+			float _SpecularPower;
+
+			float4 _SafeColor;
+
+			float _HeadBubble;
 
 			struct appdata
 			{
@@ -43,16 +55,46 @@
 				return o;
 			}
 
-			fixed4 simpleLambert (fixed3 normal) 
+			fixed4 simpleLambert (fixed3 normal, fixed3 viewDirection, fixed4 color) 
 			{
-				fixed3 lightDir = -_WorldSpaceLightPos0.xyz;	// Light direction
+				fixed3 lightDir = _WorldSpaceLightPos0.xyz;	// Light direction
 				fixed3 lightCol = _LightColor0.rgb;		// Light color
 
 				fixed NdotL = max(dot(normal, lightDir),0);
+
+				// Specular
+				fixed3 h = (lightDir - viewDirection) / 2.;
+				fixed s = pow( dot(normal, h), _SpecularPower) * _Gloss;
+
 				fixed4 c;
-				c.rgb = _Color * lightCol * NdotL;
+				c.rgb = color * lightCol * NdotL + s + _Color * unity_AmbientSky;
 				c.a = 1;
 				return c;
+			}
+
+			float vmax(float3 v)
+			{	
+ 				return max(max(v.x, v.y), v.z);
+			}
+
+			float merge(float shape1, float shape2)
+			{
+				return min(shape1, shape2);
+			}
+
+			float roundMerge(float shape1, float shape2, float radius) {
+				float2 u = max(float2(radius - shape1,radius - shape2), float2(0, 0));
+				return max(radius, min (shape1, shape2)) - length(u);
+			}
+
+			float intersect(float shape1, float shape2)
+			{
+				return max(shape1, shape2);
+			}
+
+			float roundIntersect(float shape1, float shape2, float radius){
+				float2 u = max(float2(radius + shape1,radius + shape2), float2(0, 0));
+				return min(-radius, max (shape1, shape2)) + length(u);
 			}
 
 			float sphere(float3 position, float3 origin, float radius)
@@ -60,11 +102,49 @@
 				return distance(position, origin) - radius;
 			}
 
+			float box(float3 position, float3 center, float3 size)
+			{
+				float x = max
+				(   position.x - center.x - float3(size.x / 2., 0, 0),
+					center.x - position.x - float3(size.x / 2., 0, 0)
+				);
+			
+				float y = max
+				(   position.y - center.y - float3(size.y / 2., 0, 0),
+					center.y - position.y - float3(size.y / 2., 0, 0)
+				);
+				
+				float z = max
+				(   position.z - center.z - float3(size.z / 2., 0, 0),
+					center.z - position.z - float3(size.z / 2., 0, 0)
+				);
+			
+				float d = x;
+				d = max(d,y);
+				d = max(d,z);
+				return d;
+			}
+
+			float quickBox(float3 position, float3 center, float3 size)
+			{
+				return vmax(abs(position-center) - size);
+			}
+
+			float safeZones(float3 position)
+			{
+				float room = -quickBox(position, float3(0, 2, 0), float3(3, 2, 3));
+
+				return room;
+			}
+
 			float scene(float3 position)
 			{
-				float ball = sphere(position, float3(0, 0, 0), 1);
+				float playerBubble = min(-sphere(position, _WorldSpaceCameraPos, _HeadBubble), position.y);
+				float zones = safeZones(position);
 
-				return ball;
+				float scene = intersect(playerBubble, zones);
+
+				return scene;
 			}
 
 			float3 normal (float3 p)
@@ -80,22 +160,28 @@
 				);
 			}
 
-			fixed4 renderSurface(float3 p)
+			fixed4 color(float3 position){
+				float zones = safeZones(position);
+				fixed4 col = lerp(_SafeColor, _Color, saturate(abs(zones)));
+				return col;
+			}
+
+			fixed4 renderSurface(float3 p, float3 dir)
 			{
 				float3 n = normal(p);
-				return simpleLambert(n);
+				return simpleLambert(n, dir, color(p));
 			}
 
 			fixed4 raycast(float3 position, float3 direction)
 			{
 				for(int i = 0; i < STEPS; i++){
-					float distance = sphere(position, float3(0, 0, 0), 1);
+					float distance = scene(position);
 					if(distance < MIN_DISTANCE)
-						return renderSurface(position);
+						break;
 					
 					position += distance * direction;
 				}
-				return 0;
+				return renderSurface(position, direction);
 			}
 
 			fixed4 frag (v2f i) : SV_TARGET
