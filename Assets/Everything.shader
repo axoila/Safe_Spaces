@@ -19,7 +19,7 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			#define STEPS 256
+			#define STEPS 128
 			#define MIN_DISTANCE 0.01
 
 			#include "Lighting.cginc"
@@ -174,13 +174,17 @@
 				return vmax(abs(position-center) - size);
 			}
 
+			float magnumOpus(float3 position){
+				return sphere(position, float3(15, 5, 110), 3);
+			}
+
 			float marker(float3 position, float3 markerBase){
 				position -= markerBase;
 
 				float size = 5;
 				float c = 0;
 
-				float guard = cylinder(position, 0.25, 2);
+				float guard = sphere(position, float3(0, 1, 0), 1);
 				if(guard > 1)
 					return guard;
 
@@ -189,7 +193,7 @@
 
 				float base = roundMerge(cyl, ball, .1);
 				
-				c = pModPolar(position.xz,5, _Time.y); 
+				c = pModPolar(position.xz,5, _Time.y * 3); 
 				position.x -= 0.25;
 				
 				// the repeated geometry:
@@ -204,9 +208,21 @@
 			float getMarkers(float3 position){
 				float allMarkers = marker(position, float3(0, 0, 6));
 				allMarkers = merge(allMarkers, marker(position, float3(3, 0, 10)));
-				allMarkers = merge(allMarkers, marker(position, float3(8, 0, 15)));
+				allMarkers = merge(allMarkers, marker(position, float3(8, 0, 14)));
 				allMarkers = merge(allMarkers, marker(position, float3(14, 0, 15)));
 				allMarkers = merge(allMarkers, marker(position, float3(20, 0, 17)));
+
+				allMarkers = merge(allMarkers, marker(position, float3(30, 0, 26)));
+				allMarkers = merge(allMarkers, marker(position, float3(27, 0, 32)));
+				allMarkers = merge(allMarkers, marker(position, float3(21, 0, 35)));
+				allMarkers = merge(allMarkers, marker(position, float3(15, 0, 39)));
+				allMarkers = merge(allMarkers, marker(position, float3(11, 0, 45)));
+
+				allMarkers = merge(allMarkers, marker(position, float3(10, 0, 61)));
+				allMarkers = merge(allMarkers, marker(position, float3(13, 0, 67)));
+				allMarkers = merge(allMarkers, marker(position, float3(16, 0, 75)));
+				allMarkers = merge(allMarkers, marker(position, float3(15, 0, 84)));
+				allMarkers = merge(allMarkers, marker(position, float3(12, 0, 93)));
 
 				return allMarkers;
 			}
@@ -215,7 +231,15 @@
 			{
 				float3 roomSize = float3(10, 5, 10);
 				float rooms = -box(position, float3(0, 2.5, 0), roomSize);
+
 				rooms = intersect(rooms, -box(position, float3(30, 2.5, 20), roomSize));
+
+				rooms = intersect(rooms, -box(position, float3(10, 2.5, 55), roomSize));
+				
+				float finalRoom = intersect(rooms, -box(position, float3(15, 5, 110), float3(20, 10, 20)));
+
+				rooms = intersect(rooms, -box(position, float3(15, 5, 110), float3(20, 10, 20)));
+
 
 				return rooms;
 			}
@@ -225,7 +249,10 @@
 				float playerBubble = min(-sphere(position, _HeadPos, _HeadBubble), position.y);
 				float zones = getSafeZones(position);
 
-				float scene = smoothIntersect(playerBubble, zones, 5);
+				float scene = intersect(playerBubble, zones);
+
+				//debug
+				scene = intersect(scene, position.y - 1);
 				
 				float markers = getMarkers(position);
 				scene = merge(scene, markers);
