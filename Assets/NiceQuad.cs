@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class NiceQuad : MonoBehaviour {
 
 	MeshRenderer render;
@@ -12,12 +13,12 @@ public class NiceQuad : MonoBehaviour {
 		cam = Camera.main;
 		render = GetComponent<MeshRenderer> ();
 
-		float height = Mathf.Tan(cam.fieldOfView);
+		float height = Mathf.Cos(cam.fieldOfView * Mathf.Deg2Rad);
 		render.transform.localScale = new Vector3 (height * cam.aspect, height, 1);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        Start();
+    }
 }
